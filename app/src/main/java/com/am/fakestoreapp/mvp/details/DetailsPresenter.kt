@@ -29,14 +29,16 @@ class DetailsPresenter(val iView: DetailContract.IView, private val service: Pro
     }
 
     override fun addToCart(context: Context, item: ProductsItem) {
-//        val date = Calendar.getInstance().time
-//        val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-//        val strDate = formatter.format(date)
-//        GlobalScope.launch(Dispatchers.Main) {
-//            if (AppDatabase.getDatabase(context).cartDao().exists(item.id)) {
-//                AppDatabase.getDatabase(context).cartDao().update(item)
-//            } else
-//                AppDatabase.getDatabase(context).cartDao().insert(item)
-//        }
+        GlobalScope.launch {
+            if (AppDatabase.getDatabase(context).cartDao().exists(item.id)) {
+                AppDatabase.getDatabase(context).cartDao().update(item.also {
+                    it.totalPrice = it.price!! * item.qty!!
+                })
+            } else
+                AppDatabase.getDatabase(context).cartDao()
+                    .insert(item.also {
+                        it.totalPrice = it.price!! * item.qty!!
+                    })
+        }
     }
 }

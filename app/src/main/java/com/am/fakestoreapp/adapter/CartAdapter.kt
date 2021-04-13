@@ -13,16 +13,16 @@ import kotlinx.android.synthetic.main.product_list_item.view.price
 
 class CartAdapter(
     private val context: Context,
-    var productList: List<ProductsItem>,
-    val onItemClick: (ProductsItem, Int) -> Unit
+    var productList: MutableList<ProductsItem>,
+    val onItemClick: (ProductsItem, String) -> Unit
 ) :
     RecyclerView.Adapter<CartAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val viewHolder =
             LayoutInflater.from(context).inflate(R.layout.cart_item, parent, false)
-        return ViewHolder(viewHolder) {
-            onItemClick(productList[it], it)
+        return ViewHolder(viewHolder) { pos: Int, actionStr: String ->
+            onItemClick(productList[pos], actionStr)
         }
     }
 
@@ -34,24 +34,43 @@ class CartAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.name.text = productList[position].title
         holder.price.text = "$ ${productList[position].price}"
-        holder.cancel.setOnClickListener { onItemClick(productList[position], position) }
-        var qty = productList[position].qty
+        holder.cancel.setOnClickListener {
+            onItemClick(productList[position], "CANCEL")
+            productList.removeAt(position)
+            notifyItemRemoved(position)
+        }
+        var quantity = productList[position].qty
+        holder.qtyTV.text = "$quantity"
         holder.add.setOnClickListener {
-            if (qty != null && qty < 10) {
-                qty + 1
+            if (quantity != null && quantity < 10) {
+                quantity += 1
+                holder.qtyTV.text = "$quantity"
+                onItemClick(productList[position].also {
+                    it.qty = quantity
+                    it.totalPrice = it.totalPrice + it.price!!
+                }, "ADD")
+                notifyItemChanged(position)
             }
         }
         holder.remove.setOnClickListener {
-            if (qty != null && qty >= 2) {
-                qty - 1
+            if (quantity != null && quantity >= 2) {
+                quantity -= 1
+                holder.qtyTV.text = "$quantity"
+                onItemClick(productList[position].also {
+                    it.qty = quantity
+                    it.totalPrice = it.totalPrice - it.price!!
+                }, "REMOVE")
+                notifyItemChanged(position)
             }
         }
     }
 
-    class ViewHolder(itemView: View, onItemClick: (Int) -> Unit) :
+    class ViewHolder(itemView: View, onItemClick: (Int, String) -> Unit) :
         RecyclerView.ViewHolder(itemView) {
         init {
-            itemView.setOnClickListener { onItemClick(adapterPosition) }
+            itemView.cancel.setOnClickListener { onItemClick(adapterPosition, "CANCEL") }
+            itemView.add.setOnClickListener { onItemClick(adapterPosition, "ADD") }
+            itemView.remove.setOnClickListener { onItemClick(adapterPosition, "REMOVE") }
         }
 
         val name = itemView.name!!
@@ -59,6 +78,7 @@ class CartAdapter(
         val cancel = itemView.cancel!!
         val remove = itemView.remove!!
         val add = itemView.add!!
-        val qty = itemView.qty!!
+        val qtyTV = itemView.qtyTV!!
+
     }
 }

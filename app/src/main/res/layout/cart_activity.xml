@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/offWhite"
     android:orientation="vertical">
 
     <com.google.android.material.appbar.AppBarLayout
@@ -46,7 +47,7 @@
             android:backgroundTint="@color/purple_200"
             android:gravity="center"
             android:padding="2dp"
-            android:text="Total: $ 200.20"
+            android:text="Total: $ 0.0"
             android:textSize="19sp" />
 
         <androidx.recyclerview.widget.RecyclerView
@@ -62,7 +63,7 @@
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
             android:layout_centerVertical="true"
-            android:text="No Item Found"
+            android:text="No item in the cart"
             android:textSize="18sp"
             android:visibility="gone" />
 

@@ -11,9 +11,12 @@ import com.am.fakestoreapp.adapter.HomeAdapter
 import com.am.fakestoreapp.model.ProductsItem
 import com.am.fakestoreapp.mvp.home.HomeContract
 import com.am.fakestoreapp.mvp.home.HomePresenter
+import com.am.fakestoreapp.room.AppDatabase
 import com.am.fakestoreapp.service.ProductService
 import com.am.fakestoreapp.utils.INTENT_PRODUCT_ID
 import kotlinx.android.synthetic.main.home_activity.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class HomeActivity : AppCompatActivity(), HomeContract.IView {
     private val presenter =
@@ -32,6 +35,7 @@ class HomeActivity : AppCompatActivity(), HomeContract.IView {
 
     override fun initUI() {
         cartImg.setOnClickListener {
+            startActivity(Intent(this, CartActivity::class.java))
             Toast.makeText(this, "Cart clicked", Toast.LENGTH_SHORT).show()
         }
     }
