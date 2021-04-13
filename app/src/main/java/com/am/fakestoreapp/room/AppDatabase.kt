@@ -6,9 +6,8 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.am.fakestoreapp.model.ProductsItem
 
-@Database(entities = [ProductsItem::class], version = 1, exportSchema = false)
+@Database(entities = [ProductsItem::class], version = 1)
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun getCartItem(): List<ProductsItem>
     abstract fun cartDao(): CartDao
 
     companion object {
@@ -19,9 +18,9 @@ abstract class AppDatabase : RoomDatabase() {
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
-                    context.applicationContext,
+                    context,
                     AppDatabase::class.java,
-                    "cart_database"
+                    "am_cart_database"
                 ).build()
                 INSTANCE = instance
                 instance

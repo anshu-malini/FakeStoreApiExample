@@ -18,20 +18,13 @@ import kotlinx.coroutines.launch
 class CartActivity : AppCompatActivity(), HomeContract.IView {
     var totalAmount: Double = 0.0
 
-//    private val presenter =
-//        HomePresenter(this, ProductService())
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.cart_activity)
         initUI()
         reloadData()
-//        swipeRefreshLayout.setOnRefreshListener {
-//            reloadData()
-//            swipeRefreshLayout.isRefreshing = false
-//        }
 
-        GlobalScope.launch(Dispatchers.Main) {
+        GlobalScope.launch {
             success(AppDatabase.getDatabase(this@CartActivity).cartDao().getAllCartItem())
         }
     }
@@ -44,12 +37,12 @@ class CartActivity : AppCompatActivity(), HomeContract.IView {
 
     override fun reloadData() {
         isShowProgress(true)
-//        presenter.getProductList()
     }
 
-    override fun success(list: List<ProductsItem>?) {
+    override fun success(itemList: List<ProductsItem>?) {
         isShowProgress(false)
-        if (list != null) {
+        if (itemList != null && itemList.isNotEmpty()) {
+            val list = itemList.toMutableList()
             total.text = "Total: $ ${calculateTotal(list)}"
 
             noItem.visibility = View.GONE
@@ -58,48 +51,72 @@ class CartActivity : AppCompatActivity(), HomeContract.IView {
                 layoutManager = LinearLayoutManager(this@CartActivity)
                 adapter = CartAdapter(
                     this@CartActivity,
-                    list.sortedBy { it.price }) { productsItem: ProductsItem, i: Int ->
-                    adapter?.notifyItemRemoved(i)
-                    GlobalScope.launch(Dispatchers.Main) {
-                        AppDatabase.getDatabase(this@CartActivity).cartDao()
-                            .deleteOneItem(productsItem.id)
+                    list
+                ) { productsItem: ProductsItem, actionStr: String ->
+                    updateTotal(productsItem, actionStr)
+                    GlobalScope.launch {
+                        when (actionStr) {
+                            "CANCEL" -> {
+                                AppDatabase.getDatabase(this@CartActivity).cartDao()
+                                    .deleteOneItem(productsItem.id)
+
+                            }
+                            "ADD", "REMOVE" -> {
+                                AppDatabase.getDatabase(this@CartActivity).cartDao()
+                                    .update(productsItem)
+
+                            }
+                        }
                     }
                 }
-//                adapter = CartAdapter(this@CartActivity, list.sortedBy { it.price }) {
-//
-//                    adapter?.notifyItemRemoved(9)
-//                    startActivity(
-//                        Intent(
-//                            this@CartActivity,
-//                            ProductDetails::class.java
-//                        ).apply { putExtra(INTENT_PRODUCT_ID, it.id) })
-//                }
             }
         } else {
             showEmpty()
         }
     }
 
-    fun calculateTotal(list: List<ProductsItem>): Double {
+    fun calculateTotal(list: List<ProductsItem>): String {
         for (item in list) {
-            totalAmount += item.price!!
+            totalAmount += item.totalPrice
         }
-        return totalAmount
+        return String.format("%,.2f", totalAmount)
+    }
+
+    fun updateTotal(item: ProductsItem, actionStr: String) {
+        when (actionStr) {
+            "CANCEL" -> {
+                totalAmount -= item.price!! * item.qty!!
+            }
+            "ADD" -> {
+                totalAmount += item.price!!
+            }
+            "REMOVE" -> {
+                totalAmount -= item.price!!
+            }
+        }
+        if (totalAmount < 0) {
+            totalAmount = 0.0
+            showEmpty()
+        }
+        total.text = "Total: $ ${String.format("%,.2f", totalAmount)}"
+
     }
 
     override fun showEmpty() {
-        isShowProgress(false)
-        noItem.visibility = View.VISIBLE
-        recyclerView.visibility = View.GONE
+        GlobalScope.launch(Dispatchers.Main) {
+            isShowProgress(false)
+            noItem.visibility = View.VISIBLE
+            recyclerView.visibility = View.GONE
+        }
     }
 
     override fun isShowProgress(showProgress: Boolean) {
-        if (showProgress) {
-            progressDot.visibility = View.VISIBLE
-            progressDot.startAnimation()
-        } else {
-            progressDot.stopAnimation()
-            progressDot.visibility = View.GONE
+        GlobalScope.launch(Dispatchers.Main) {
+            if (showProgress) {
+                progressDot.visibility = View.VISIBLE
+            } else {
+                progressDot.visibility = View.GONE
+            }
         }
     }
 }

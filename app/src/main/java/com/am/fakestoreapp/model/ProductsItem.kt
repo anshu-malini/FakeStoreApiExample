@@ -1,6 +1,5 @@
 package com.am.fakestoreapp.model
 
-import android.os.Parcelable
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
@@ -11,7 +10,10 @@ data class ProductsItem(
     @PrimaryKey(autoGenerate = true) var _autoId: Int = 0,
 
     @ColumnInfo(name = "qty")
-    @SerializedName("qty") var qty: Int? = null,
+    @SerializedName("qty") var qty: Int? = 0,
+
+    @ColumnInfo(name = "totalPrice")
+    @SerializedName("totalPrice") var totalPrice: Double = 0.0,
 
     @ColumnInfo(name = "image")
     @field:SerializedName("image")

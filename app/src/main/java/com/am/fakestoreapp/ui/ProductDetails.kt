@@ -13,6 +13,9 @@ import com.am.fakestoreapp.utils.INTENT_PRODUCT_ID
 import com.bumptech.glide.Glide
 import kotlinx.android.synthetic.main.home_activity.progressDot
 import kotlinx.android.synthetic.main.product_details.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class ProductDetails : AppCompatActivity(), DetailContract.IView {
     private val presenter = DetailsPresenter(this, ProductService())
@@ -88,12 +91,12 @@ class ProductDetails : AppCompatActivity(), DetailContract.IView {
     }
 
     override fun isShowProgress(showProgress: Boolean) {
-        if (showProgress) {
-            progressDot.visibility = View.VISIBLE
-            progressDot.startAnimation()
-        } else {
-            progressDot.stopAnimation()
-            progressDot.visibility = View.GONE
+        GlobalScope.launch(Dispatchers.Main) {
+            if (showProgress) {
+                progressDot.visibility = View.VISIBLE
+            } else {
+                progressDot.visibility = View.GONE
+            }
         }
     }
 }
